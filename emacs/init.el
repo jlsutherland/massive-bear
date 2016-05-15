@@ -2,11 +2,11 @@
 (setq user-mail-address "jls2316@columbia.edu")
 
 ;; environment
-(setenv "PATH" (concat "/Users/joesutherland/.rvm/gems/ruby-2.1.3/bin:/Users/joesutherland/.rvm/gems/ruby-2.1.3@global/bin:/Users/joesutherland/.rvm/rubies/ruby-2.1.3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/usr/local/git/bin:/usr/texbin:/Users/joesutherland/.rvm/bin" (getenv "PATH")))
 (require 'cl)
 
 ;; frame size
-(when window-system (set-frame-size (selected-frame) 100 56))
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+;;(when window-system (set-frame-size (selected-frame) 100 56))
 
 ;; key bindings
 (global-set-key (kbd "RET") 'newline-and-indent)
@@ -92,7 +92,10 @@
     (package-refresh-contents)
     (package-install 'use-package)))
 (add-to-list 'load-path "~/.emacs.d/site-lisp/magit/lisp")
-
+(add-to-list 'load-path "~/.emacs.d/site-lisp/ESS/lisp")
+(setq load-path
+      (append '("~/.emacs.d/site-lisp/polymode/"  "~/.emacs.d/site-lisp/polymode/modes")
+              load-path))
 
 (require 'use-package)
 
@@ -112,27 +115,27 @@
 (use-package magit
   :ensure with-editor
   :init (progn
-          (with-eval-after-load 'info
-            (info-initialize)
-            (add-to-list 'Info-directory-list
-                         "~/.emacs.d/site-lisp/magit/Documentation/"))
-          ))
+    (with-eval-after-load 'info
+      (info-initialize)
+      (add-to-list 'Info-directory-list
+       "~/.emacs.d/site-lisp/magit/Documentation/"))
+    ))
 
 (use-package dash
   :ensure dash
   :init (progn
-          ))
+    ))
 
 (use-package with-editor
   :ensure with-editor
   :init (progn
-          ))
+    ))
 
 (use-package ac-js2
   :ensure ac-js2
   :init (progn
-          (add-hook 'js2-mode-hook 'ac-js2-mode)
-          ))
+    (add-hook 'js2-mode-hook 'ac-js2-mode)
+    ))
 
 (use-package ac-slime
   :ensure ac-slime
@@ -192,52 +195,49 @@
     (add-to-list 'auto-mode-alist '("\\.text$" . markdown-mode))
     (add-to-list 'auto-mode-alist '("\\.txt$" . markdown-mode))
     (add-hook 'markdown-mode-hook
-        (lambda ()
-          (visual-line-mode t)
-          (writegood-mode t)
-          (flyspell-mode t)))
+  (lambda ()
+    (visual-line-mode t)
+    (writegood-mode t)
+    (flyspell-mode t)))
     (setq markdown-command "pandoc --smart -f markdown -t html")
     ;;(setq markdown-css-path (expand-file-name "markdown.css" abedra/vendor-dir))
     ))
 
-(use-package polymode
-  :ensure polymode
-  :init (progn
-    (require 'poly-R) (require 'poly-markdown)
-    (add-hook 'poymode-hook
-        (lambda ()
-          (visual-line-mode t)
-          (writegood-mode t)
-          (flyspell-mode t)))
-    ;; MARKDOWN
-    (add-to-list 'auto-mode-alist '("\\.md" . poly-markdown-mode))
-    ;; R modes
-    (add-to-list 'auto-mode-alist '("\\.Snw" . poly-noweb+r-mode))
-    (add-to-list 'auto-mode-alist '("\\.Rnw" . poly-noweb+r-mode))
-    (add-to-list 'auto-mode-alist '("\\.Rmd" . poly-markdown+r-mode))
-    ;; ESS polymode rmarkdown compile function
-    (defun ess-rmarkdown ()
-      "Compile R markdown (.Rmd). Should work for any output type."
-      (interactive)
-      ;; Check if attached R-session
-      (condition-case nil
-    (ess-get-process)
-        (error
-         (ess-switch-process)))
-      (let* ((rmd-buf (current-buffer)))
-        (save-excursion
-    (let* ((sprocess (ess-get-process ess-current-process-name))
-           (sbuffer (process-buffer sprocess))
-           (buf-coding (symbol-name buffer-file-coding-system))
-           (R-cmd
-      (format "library(rmarkdown); rmarkdown::render(\"%s\")"
-        buffer-file-name)))
-      (message "Running rmarkdown on %s" buffer-file-name)
-      (ess-execute R-cmd 'buffer nil nil)
-      (switch-to-buffer rmd-buf)
-      (ess-show-buffer (buffer-name sbuffer) nil)))))
-    (define-key polymode-mode-map "\M-ns" 'ess-rmarkdown)
-    ))
+(require 'poly-R)
+(require 'poly-markdown)
+(add-hook 'polymode-hook
+          (lambda ()
+            (visual-line-mode t)
+            (writegood-mode t)
+            (flyspell-mode t)))
+;; MARKDOWN
+(add-to-list 'auto-mode-alist '("\\.md" . poly-markdown-mode))
+;; R modes
+(add-to-list 'auto-mode-alist '("\\.Snw" . poly-noweb+r-mode))
+(add-to-list 'auto-mode-alist '("\\.Rnw" . poly-noweb+r-mode))
+(add-to-list 'auto-mode-alist '("\\.Rmd" . poly-markdown+r-mode))
+;; ESS polymode rmarkdown compile function
+(defun ess-rmarkdown ()
+  "Compile R markdown (.Rmd). Should work for any output type."
+  (interactive)
+  ;; Check if attached R-session
+  (condition-case nil
+      (ess-get-process)
+    (error
+     (ess-switch-process)))
+  (let* ((rmd-buf (current-buffer)))
+    (save-excursion
+      (let* ((sprocess (ess-get-process ess-current-process-name))
+             (sbuffer (process-buffer sprocess))
+             (buf-coding (symbol-name buffer-file-coding-system))
+             (R-cmd
+              (format "library(rmarkdown); rmarkdown::render(\"%s\")"
+                      buffer-file-name)))
+        (message "Running rmarkdown on %s" buffer-file-name)
+        (ess-execute R-cmd 'buffer nil nil)
+        (switch-to-buffer rmd-buf)
+        (ess-show-buffer (buffer-name sbuffer) nil)))))
+(define-key polymode-mode-map "\M-ns" 'ess-rmarkdown)
 
 (use-package nodejs-repl
   :ensure nodejs-repl
@@ -282,7 +282,7 @@
       (setq web-mode-enable-current-column-highlight t)
       (setq web-mode-enable-css-colorization t)
       (add-hook 'local-write-file-hooks
-          (lambda ()
+    (lambda ()
       (delete-trailing-whitespace)
       nil))
       )
@@ -321,6 +321,11 @@
   :init (progn
     ))
 
+(use-package tex
+  :ensure auctex
+  :init (progn
+    ))
+
 (use-package ido-hacks
   :ensure ido-hacks
   :init (progn
@@ -338,12 +343,12 @@
     ;; js2-mode to use spaces instead of tabs
     (setq js2-mode-hook
     '(lambda () (progn
-                  (set-variable 'indent-tabs-mode nil))))
+      (set-variable 'indent-tabs-mode nil))))
     (add-hook 'js2-mode-hook
-              (defun my-js2-mode-setup ()
-                (flycheck-mode t)
-                (when (executable-find "eslint")
-                  (flycheck-select-checker 'javascript-eslint))))
+        (defun my-js2-mode-setup ()
+    (flycheck-mode t)
+    (when (executable-find "eslint")
+      (flycheck-select-checker 'javascript-eslint))))
     ))
 
 (use-package multi-term
@@ -358,11 +363,6 @@
 
 (use-package multiple-cursors
   :ensure multiple-cursors
-  :init (progn
-    ))
-
-(use-package php-mode
-  :ensure php-mode
   :init (progn
     ))
 
@@ -404,7 +404,7 @@
       (if (equal web-mode-content-type "jsx")
     (let ((web-mode-enable-part-face nil))
       ad-do-it)
-        ad-do-it))
+  ad-do-it))
     ))
 
 (use-package yaml-mode
@@ -425,7 +425,7 @@
 
 (setq load-path (cons "~/Build/Emacs/org-mode/lisp" load-path))
 (setq load-path (cons "~/Build/Emacs/org-mode/contrib/lisp"
-          load-path))
+    load-path))
 (require 'org-install)
 
 ;; start-up options
@@ -445,7 +445,7 @@
 
 ;; tabs
 (setq-default tab-width 2
-        indent-tabs-mode nil)
+  indent-tabs-mode nil)
 
 ;; buffer cleanup
 (defun untabify-buffer ()
@@ -506,7 +506,7 @@
   (load-theme 'monokai t))
 
 ;; load font for my eyes
-(set-default-font "Droid Sans Mono-12")
+(set-default-font "DejaVu Sans Mono-10")
 
 ;; ido mode
 (setq ido-enable-flex-matching t
@@ -516,7 +516,7 @@
 
 ;; AUCTeX
 ;; Customary Customization, p. 1 and 16 in the manual, and http://www.emacswiki.org/emacs/AUCTeX#toc2
-(load "auctex.el" nil t t)
+(require 'tex)
 (setq TeX-parse-self t); Enable parse on load.
 (setq TeX-auto-save t); Enable parse on save.
 (setq-default TeX-master nil)
@@ -551,7 +551,7 @@
      ;; can't use $HOME in path for \addbibresource but that "~"
      ;; works.
      (setq reftex-bibliography-commands '("bibliography" "nobibliography" "addbibresource"))
-          ;     (setq reftex-default-bibliography '("UNCOMMENT LINE AND INSERT PATH TO YOUR BIBLIOGRAPHY HERE")); So that RefTeX in Org-mode knows bibliography
+    ;     (setq reftex-default-bibliography '("UNCOMMENT LINE AND INSERT PATH TO YOUR BIBLIOGRAPHY HERE")); So that RefTeX in Org-mode knows bibliography
      (setcdr (assoc 'caption reftex-default-context-regexps) "\\\\\\(rot\\|sub\\)?caption\\*?[[{]"); Recognize \subcaptions, e.g. reftex-citation
      (setq reftex-cite-format; Get ReTeX with biblatex, see http://tex.stackexchange.com/questions/31966/setting-up-reftex-with-biblatex-citation-commands/31992#31992
      '((?t . "\\textcite[]{%l}")
@@ -583,7 +583,7 @@
   ("cite*" "[{")
   ("parencite*" "[{")
   ("supercite" "[{")
-          ; Qualified citation lists
+    ; Qualified citation lists
   ("cites" "[{")
   ("Cites" "[{")
   ("parencites" "[{")
@@ -678,7 +678,7 @@
 ;; ESS mode config and load
 (require 'ess-site)
 (setq ess-ask-for-ess-directory nil)
-(setq inferior-R-program-name "/usr/local/bin/R")
+(setq inferior-R-program-name "/usr/bin/R")
 (setq ess-local-process-name "R")
 (setq ansi-color-for-comint-mode 'filter)
 (setq comint-scroll-to-bottom-on-input t)
@@ -716,13 +716,13 @@
       (writegood-mode t)
       (flyspell-mode t)))
 (setq org-agenda-files (list "~/org/school.org"
-           "~/org/ideas.org"
-           ))
+     "~/org/ideas.org"
+     ))
 (setq org-todo-keywords '("TODO" "IN-PROGRESS" "WAITING" "DONE"))
 (setq org-tag-alist '(("@work" . ?w)
-          ("@home" . ?h)
-          ("reading" . ?r)
-          ("writing" . ?t)))
+    ("@home" . ?h)
+    ("reading" . ?r)
+    ("writing" . ?t)))
 
 ;;; org-mode time summary block
 (defun org-dblock-write:rangereport (params)
@@ -732,7 +732,7 @@
    (start (time-to-seconds
      (apply 'encode-time (org-parse-time-string ts))))
    (end (time-to-seconds
-         (apply 'encode-time (org-parse-time-string te))))
+   (apply 'encode-time (org-parse-time-string te))))
    day-numbers)
     (setq params (plist-put params :tstart nil))
     (setq params (plist-put params :end nil))
@@ -740,7 +740,7 @@
       (save-excursion
   (insert "\n\n"
     (format-time-string (car org-time-stamp-formats)
-            (seconds-to-time start))
+      (seconds-to-time start))
     "----------------\n")
   (org-dblock-write:clocktable
    (plist-put
@@ -748,10 +748,10 @@
      params
      :tstart
      (format-time-string (car org-time-stamp-formats)
-             (seconds-to-time start)))
+       (seconds-to-time start)))
     :tend
     (format-time-string (car org-time-stamp-formats)
-            (seconds-to-time end))))
+      (seconds-to-time end))))
   (setq start (+ 86400 start))))))
 
 ;; org mode outline block
