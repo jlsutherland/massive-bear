@@ -82,9 +82,9 @@
 ;; Add package repos
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
-        ("marmalade" . "http://marmalade-repo.org/packages/")
-        ("melpa" . "http://melpa.org/packages/")
-        ("elpy" . "http://jorgenschaefer.github.io/packages/")))
+	("marmalade" . "http://marmalade-repo.org/packages/")
+	("melpa" . "http://melpa.org/packages/")
+	("elpy" . "http://jorgenschaefer.github.io/packages/")))
 
 ;; install use-package
 (unless (package-installed-p 'use-package)
@@ -95,7 +95,7 @@
 (add-to-list 'load-path "~/.emacs.d/site-lisp/ESS/lisp")
 (setq load-path
       (append '("~/.emacs.d/site-lisp/polymode/"  "~/.emacs.d/site-lisp/polymode/modes")
-              load-path))
+	      load-path))
 
 (require 'use-package)
 
@@ -206,10 +206,10 @@
 (require 'poly-R)
 (require 'poly-markdown)
 (add-hook 'polymode-hook
-          (lambda ()
-            (visual-line-mode t)
-            (writegood-mode t)
-            (flyspell-mode t)))
+	  (lambda ()
+	    (visual-line-mode t)
+	    (writegood-mode t)
+	    (flyspell-mode t)))
 ;; MARKDOWN
 (add-to-list 'auto-mode-alist '("\\.md" . poly-markdown-mode))
 ;; R modes
@@ -228,15 +228,15 @@
   (let* ((rmd-buf (current-buffer)))
     (save-excursion
       (let* ((sprocess (ess-get-process ess-current-process-name))
-             (sbuffer (process-buffer sprocess))
-             (buf-coding (symbol-name buffer-file-coding-system))
-             (R-cmd
-              (format "library(rmarkdown); rmarkdown::render(\"%s\")"
-                      buffer-file-name)))
-        (message "Running rmarkdown on %s" buffer-file-name)
-        (ess-execute R-cmd 'buffer nil nil)
-        (switch-to-buffer rmd-buf)
-        (ess-show-buffer (buffer-name sbuffer) nil)))))
+	     (sbuffer (process-buffer sprocess))
+	     (buf-coding (symbol-name buffer-file-coding-system))
+	     (R-cmd
+	      (format "library(rmarkdown); rmarkdown::render(\"%s\")"
+		      buffer-file-name)))
+	(message "Running rmarkdown on %s" buffer-file-name)
+	(ess-execute R-cmd 'buffer nil nil)
+	(switch-to-buffer rmd-buf)
+	(ess-show-buffer (buffer-name sbuffer) nil)))))
 (define-key polymode-mode-map "\M-ns" 'ess-rmarkdown)
 
 (use-package nodejs-repl
@@ -253,6 +253,11 @@
   :ensure monokai-theme
   :init (progn
     ))
+
+;; (use-package php-mode
+;;   :ensure php-mode
+;;   :init (progn
+;;     ))
 
 (use-package web-mode
   :ensure web-mode
@@ -345,7 +350,7 @@
     '(lambda () (progn
       (set-variable 'indent-tabs-mode nil))))
     (add-hook 'js2-mode-hook
-        (defun my-js2-mode-setup ()
+	(defun my-js2-mode-setup ()
     (flycheck-mode t)
     (when (executable-find "eslint")
       (flycheck-select-checker 'javascript-eslint))))
@@ -506,7 +511,7 @@
   (load-theme 'monokai t))
 
 ;; load font for my eyes
-(set-default-font "DejaVu Sans Mono-10")
+(set-default-font "DejaVu Sans Mono-9")
 
 ;; ido mode
 (setq ido-enable-flex-matching t
